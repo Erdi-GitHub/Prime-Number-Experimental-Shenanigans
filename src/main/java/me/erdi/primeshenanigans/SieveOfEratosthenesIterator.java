@@ -1,17 +1,17 @@
 package me.erdi.primeshenanigans;
 
-import java.util.Arrays;
+import java.util.BitSet;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class SieveOfEratosthenesIterator implements PrimeIterator<Integer> {
-    private final boolean[] primeTape;
+    private final BitSet primeTape;
     private final int size;
     private final int maxCompareSize;
 
     private int index = 1;
 
-    public static final int MAX_SIZE = Integer.MAX_VALUE - 8;
+    public static final int MAX_SIZE = Integer.MAX_VALUE;
 
     public SieveOfEratosthenesIterator(int size) {
         if(size < 0)
@@ -20,15 +20,11 @@ public class SieveOfEratosthenesIterator implements PrimeIterator<Integer> {
         if(size < 2)
             throw new UnsupportedOperationException("bit too small.. :( size should be >= 2");
 
-        if(size > MAX_SIZE)
-            throw new UnsupportedOperationException("that's too big! >:( size should be smaller than or equal to 2^31 - 9 (2147483639)");
-
-        this.primeTape = new boolean[size];
+        this.primeTape = new BitSet(size);
         this.size = size;
         this.maxCompareSize = (int)Math.sqrt(size);
 
-        Arrays.fill(this.primeTape, true);
-        primeTape[0] = false;
+        this.primeTape.set(1, size, true);
     }
 
     public int getMaxCompareSize() {
@@ -36,14 +32,14 @@ public class SieveOfEratosthenesIterator implements PrimeIterator<Integer> {
     }
 
     public Stream<Boolean> tapeStream() {
-        return IntStream.range(0, primeTape.length).mapToObj(i -> primeTape[i]);
+        return IntStream.range(0, size).mapToObj(primeTape::get);
     }
 
     @Override
     public boolean hasNext() {
         boolean reachedEnd;
 
-        while((reachedEnd = index + 1 != size) && !primeTape[index])
+        while((reachedEnd = index + 1 != size) && !primeTape.get(index))
             index++;
 
         return reachedEnd;
@@ -55,7 +51,7 @@ public class SieveOfEratosthenesIterator implements PrimeIterator<Integer> {
 
         if(index <= maxCompareSize)
             for(int i = index + n; i > 0 && i < size; i += n)
-                primeTape[i] = false;
+                primeTape.set(i, false);
 
         if(n != size)
             index++;
